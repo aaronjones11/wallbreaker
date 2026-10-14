@@ -1,0 +1,214 @@
+import * as THREE from 'three';
+import { moments } from './data.js';
+import './style.css';
+
+const app = document.querySelector('#app');
+app.innerHTML = '<div id="scene"></div><div class="shade"></div><header><div><div class="brand">WALL<b>BREAKER.</b></div><div class="kicker">THE MENTALITY COLLECTION</div></div><div class="search"><input id="search" aria-label="Search legends" placeholder="⌕ SEARCH LEGENDS & QUOTES..."><div class="results" id="results"></div></div></header><nav class="filters" id="filters"></nav><div class="instructions">DRAG TO EXPLORE<br>SCROLL TO ZOOM · CLICK A MONUMENT</div><div class="actions"><button id="random">IGNITE ↗</button><button id="reset">RESET ⌖</button></div><aside class="panel" id="panel"><div class="banner" id="banner"><span id="initials"></span><button class="close" id="close">✕</button></div><div class="content"><div class="category" id="category"></div><h2 id="name"></h2><div class="quote-label" id="quote-label"></div><blockquote id="quote"></blockquote><p class="quote-notice" id="quote-notice"></p><p id="description"></p><a id="watch" target="_blank" rel="noopener noreferrer">▶ FIND ORIGINAL MOMENT</a><a class="alt" id="more" target="_blank" rel="noopener noreferrer">MORE SPEECHES ↗</a></div></aside><footer><b>●</b> THE LIVING WALL · 25 MOMENTS · THREE.JS</footer>';
+const $ = selector => app.querySelector(selector);
+const scene = new THREE.Scene();
+scene.background = new THREE.Color('#090606');
+scene.fog = new THREE.FogExp2(0x090606,.00042);
+const camera = new THREE.PerspectiveCamera(52,1,1,9000);
+camera.position.set(0,0,1150);
+const renderer = new THREE.WebGLRenderer({antialias:true,powerPreference:'high-performance'});
+renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1,1.8));
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+$('#scene').append(renderer.domElement);
+scene.add(new THREE.AmbientLight(0xffb38b,.62));
+const key = new THREE.PointLight(0xff4c1d,1400000,2600,1.8);
+key.position.set(-420,500,700);
+scene.add(key);
+const fill = new THREE.PointLight(0xffa34a,700000,2000,1.8);
+fill.position.set(600,-420,500);
+scene.add(fill);
+const wall = new THREE.Group();
+scene.add(wall);
+const stone = new THREE.MeshStandardMaterial({color:0x1d1817,roughness:.9,metalness:.12});
+const rim = new THREE.MeshStandardMaterial({color:0x5d2415,roughness:.48,metalness:.4});
+const hot = new THREE.MeshBasicMaterial({color:0xff622b});
+const back = new THREE.Mesh(new THREE.BoxGeometry(3000,2300,60),stone);
+back.position.z = -75;
+wall.add(back);
+const portraitCache = new Map();
+function tileTexture(m){
+  const c = document.createElement('canvas');
+  c.width=512;c.height=640;
+  const g=c.getContext('2d');
+  const bg=g.createLinearGradient(0,0,512,640);
+  bg.addColorStop(0,'#30211c');bg.addColorStop(.6,'#1b1515');bg.addColorStop(1,'#080607');
+  g.fillStyle=bg;g.fillRect(0,0,512,640);
+  const halo=g.createRadialGradient(256,205,0,256,230,290);
+  halo.addColorStop(0,'#a34b2977');halo.addColorStop(1,'#08060700');
+  g.fillStyle=halo;g.fillRect(0,0,512,640);
+  g.fillStyle='#b1785b';g.font='bold 145px Arial';g.textAlign='center';
+  g.fillText(m.name.split(' ').map(v=>v[0]).join('').slice(0,2),256,315);
+  g.fillStyle='#050506b0';g.fillRect(0,410,512,230);
+  g.textAlign='left';g.fillStyle='#fff1e7';g.font='bold 39px Arial';
+  const name=m.name.toUpperCase();g.fillText(name.length>17?name.slice(0,17)+'…':name,28,480);
+  g.fillStyle='#ffd1b8';g.font='italic 26px Georgia';
+  let line='',lines=[];
+  for(const word of m.quote.split(' ')){if((line+' '+word).length>28){lines.push(line);line=word;}else line+=(line?' ':'')+word;}
+  lines.push(line);lines.slice(0,2).forEach((text,i)=>g.fillText(text,28,528+i*31));
+  g.fillStyle='#ff955b';g.font='bold 19px Arial';g.fillText(m.category,28,613);
+  const texture=new THREE.CanvasTexture(c);
+  texture.colorSpace=THREE.SRGBColorSpace;
+  return texture;
+}
+const cards=[];
+const loader=new THREE.TextureLoader();
+moments.forEach((m,i)=>{
+  const col=i%5,row=Math.floor(i/5);
+  const x=(col-2)*260+(row%2)*25,y=(2-row)*330,z=18+Math.sin(i*2.13)*22;
+  const group=new THREE.Group();
+  group.position.set(x,y,z);group.rotation.y=Math.sin(i*1.7)*.055;
+  const slab=new THREE.Mesh(new THREE.BoxGeometry(228,286,25),rim);
+  group.add(slab);
+  const material=new THREE.MeshStandardMaterial({map:tileTexture(m),roughness:.8,metalness:.05});
+  const inset=new THREE.Mesh(new THREE.BoxGeometry(216,274,2),material);
+  inset.position.z=14;group.add(inset);
+  const edge=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(231,289,27)),new THREE.LineBasicMaterial({color:0xff6b32,transparent:true,opacity:.8}));
+  group.add(edge);
+  const halo=new THREE.Mesh(new THREE.PlaneGeometry(247,304),new THREE.MeshBasicMaterial({color:0xff4719,transparent:true,opacity:.065,depthWrite:false}));
+  halo.position.z=-15;group.add(halo);
+  wall.add(group);cards.push({group,inset,halo,baseX:x,baseY:y});
+  // Set portrait in src/data.js as a URL beginning with /portraits/ to use a local image.
+  if(m.portrait){
+    loader.load(m.portrait,texture=>{
+      texture.colorSpace=THREE.SRGBColorSpace;
+      const c=document.createElement('canvas');c.width=512;c.height=640;
+      const g=c.getContext('2d');
+      const img=texture.image;
+      const scale=Math.max(512/img.width,640/img.height);
+      const w=img.width*scale,h=img.height*scale;
+      g.drawImage(img,(512-w)/2,(640-h)/2,w,h);
+      g.fillStyle='#050506c9';g.fillRect(0,420,512,220);
+      g.fillStyle='#fff1e7';g.font='bold 38px Arial';g.fillText(m.name.toUpperCase().slice(0,19),22,490);
+      g.font='italic 24px Georgia';g.fillText(m.quote.slice(0,29),22,544);
+      g.fillStyle='#ff955b';g.font='bold 19px Arial';g.fillText(m.category,22,605);
+      material.map.dispose();material.map=new THREE.CanvasTexture(c);
+      material.map.colorSpace=THREE.SRGBColorSpace;material.needsUpdate=true;
+    },undefined,()=>{});
+  }
+});
+for(let i=0;i<moments.length;i++)for(const j of [i+1,i+5]){
+  if(j>=moments.length||(j===i+1&&i%5===4))continue;
+  const a=cards[i].group.position,b=cards[j].group.position;
+  const curve=new THREE.CatmullRomCurve3([
+    new THREE.Vector3(a.x,a.y,-27),
+    new THREE.Vector3((a.x+b.x)/2+Math.sin(i*4)*17,(a.y+b.y)/2+Math.cos(i*3)*16,-27),
+    new THREE.Vector3(b.x,b.y,-27)
+  ]);
+  wall.add(new THREE.Mesh(new THREE.TubeGeometry(curve,12,1.6,5,false),hot));
+}
+const count=800,particlePos=new Float32Array(count*3),particleSpeed=new Float32Array(count);
+for(let i=0;i<count;i++){
+  particlePos[i*3]=(Math.random()-.5)*3100;
+  particlePos[i*3+1]=(Math.random()-.5)*2400;
+  particlePos[i*3+2]=Math.random()*650-80;
+  particleSpeed[i]=.35+Math.random()*1.5;
+}
+const particleGeometry=new THREE.BufferGeometry();
+particleGeometry.setAttribute('position',new THREE.BufferAttribute(particlePos,3));
+scene.add(new THREE.Points(particleGeometry,new THREE.PointsMaterial({color:0xff8c3d,size:3.5,transparent:true,opacity:.8,depthWrite:false})));
+let targetX=0,targetY=0,targetZ=1150,selected=-1,filter='ALL';
+const categories=['ALL',...new Set(moments.map(m=>m.category))];
+function reset(){
+  targetX=0;targetY=0;targetZ=1150;selected=-1;
+  $('#panel').classList.remove('open');
+  cards.forEach(c=>c.halo.material.opacity=.065);
+}
+function showFilters(){
+  $('#filters').replaceChildren(...categories.map(cat=>{
+    const b=document.createElement('button');
+    b.textContent=cat;b.className=cat===filter?'active':'';
+    b.onclick=()=>{
+      filter=cat;showFilters();
+      cards.forEach((c,i)=>c.group.visible=cat==='ALL'||moments[i].category===cat);
+      if(cat==='ALL')reset();
+      else{const i=moments.findIndex(m=>m.category===cat);if(i>=0)fly(i,false);}
+    };
+    return b;
+  }));
+}
+function fly(i,open=true){
+  const m=moments[i],c=cards[i];
+  if(!c.group.visible){filter='ALL';showFilters();cards.forEach(v=>v.group.visible=true);}
+  selected=i;targetX=c.baseX;targetY=c.baseY;targetZ=530;
+  if(!open)return;
+  $('#panel').classList.add('open');
+  $('#name').textContent=m.name.toUpperCase();
+  $('#category').textContent=m.category+' / LEGEND '+String(i+1).padStart(2,'0');
+  $('#quote').textContent=m.fullQuote || m.quote;
+  $('#quote-label').textContent=m.fullQuote?'FULL VERIFIED QUOTE':'FEATURED EXCERPT / MOMENT';
+  $('#quote-notice').textContent=m.fullQuote?'':'The complete quotation has not yet been verified. View the original moment below.';
+  $('#description').textContent=m.description;
+  const banner=$('#banner'),old=banner.querySelector('img');
+  if(old)old.remove();
+  $('#initials').textContent=m.name.split(' ').map(v=>v[0]).join('').slice(0,2);
+  if(m.portrait){const img=document.createElement('img');img.src=m.portrait;img.alt=m.name;img.onerror=()=>img.remove();banner.prepend(img);}
+  $('#watch').href=m.sourceUrl||'https://www.youtube.com/results?search_query='+encodeURIComponent(m.search);
+  $('#more').href='https://www.youtube.com/results?search_query='+encodeURIComponent(m.name+' motivational speeches');
+}
+showFilters();
+$('#reset').onclick=reset;
+$('#random').onclick=()=>fly(Math.floor(Math.random()*moments.length));
+$('#close').onclick=()=>$('#panel').classList.remove('open');
+const search=$('#search'),results=$('#results');
+search.addEventListener('input',()=>{
+  const q=search.value.trim().toLowerCase();results.replaceChildren();
+  if(!q){results.classList.remove('show');return;}
+  moments.forEach((m,i)=>{
+    if(results.children.length>=9||!(m.name+' '+m.category+' '+m.quote+' '+m.description).toLowerCase().includes(q))return;
+    const b=document.createElement('button');b.textContent=m.name+' — '+m.quote;
+    const small=document.createElement('small');small.textContent=m.category;b.append(small);
+    b.onclick=()=>{fly(i);search.value='';results.classList.remove('show');};
+    results.append(b);
+  });
+  results.classList.add('show');
+});
+search.addEventListener('keydown',e=>{if(e.key==='Enter')results.querySelector('button')?.click();if(e.key==='Escape')results.classList.remove('show');});
+const ray=new THREE.Raycaster(),mouse=new THREE.Vector2();
+let down=false,dist=0,px=0,py=0;
+const canvas=renderer.domElement;
+canvas.addEventListener('pointerdown',e=>{
+  down=true;dist=0;px=e.clientX;py=e.clientY;canvas.setPointerCapture(e.pointerId);
+});
+canvas.addEventListener('pointermove',e=>{
+  if(!down)return;
+  const dx=e.clientX-px,dy=e.clientY-py;
+  dist+=Math.abs(dx)+Math.abs(dy);
+  const factor=targetZ/950;
+  targetX-=dx*factor;targetY+=dy*factor;px=e.clientX;py=e.clientY;
+});
+canvas.addEventListener('pointerup',e=>{
+  down=false;if(dist>7)return;
+  const rect=canvas.getBoundingClientRect();
+  mouse.x=((e.clientX-rect.left)/rect.width)*2-1;
+  mouse.y=-((e.clientY-rect.top)/rect.height)*2+1;
+  ray.setFromCamera(mouse,camera);
+  const hits=ray.intersectObjects(cards.filter(c=>c.group.visible).map(c=>c.inset),false);
+  if(hits.length){const i=cards.findIndex(c=>c.inset===hits[0].object);if(i>=0)fly(i);}
+});
+canvas.addEventListener('wheel',e=>{
+  e.preventDefault();
+  targetZ=Math.max(360,Math.min(2350,targetZ*(e.deltaY>0?1.095:.91)));
+},{passive:false});
+let last=performance.now();
+function animate(t){
+  requestAnimationFrame(animate);
+  const dt=Math.min(40,t-last);last=t;
+  camera.position.x+=(targetX-camera.position.x)*.075;
+  camera.position.y+=(targetY-camera.position.y)*.075;
+  camera.position.z+=(targetZ-camera.position.z)*.075;
+  camera.lookAt(camera.position.x,camera.position.y,0);
+  for(let i=0;i<count;i++){
+    particlePos[i*3+1]+=particleSpeed[i]*dt*.035;
+    if(particlePos[i*3+1]>1200)particlePos[i*3+1]=-1200;
+  }
+  particleGeometry.attributes.position.needsUpdate=true;
+  cards.forEach((c,i)=>{const wanted=i===selected?.28:.065;c.halo.material.opacity+=(wanted-c.halo.material.opacity)*.04;});
+  renderer.render(scene,camera);
+}
+function resize(){const w=app.clientWidth,h=app.clientHeight;renderer.setSize(w,h);camera.aspect=w/h;camera.updateProjectionMatrix();}
+window.addEventListener('resize',resize);resize();
+requestAnimationFrame(animate);
