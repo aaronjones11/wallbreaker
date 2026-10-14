@@ -28,7 +28,7 @@ Deploy the `dist` folder to Cloudflare Pages or Vercel. For Cloudflare Pages: fr
 - 25 moments, covering 21 unique people or characters.
 - Selected monument opens scrollable quote popup and links to YouTube **search results**, not verified original source videos.
 - Short titles/excerpts are explicitly identified. **Complete verified quotations have not been added.**
-- **Portraits have not been added**: visual initials remain until images are individually sourced.
+- **Auto portraits:** Wikimedia/Wikipedia article thumbnails are fetched in the browser where available, displayed on monuments and in popups. This depends on image availability and browser CORS. Other entries retain initials placeholders. No curated portrait files have been uploaded.
 - Prototype only; browser build, runtime, and licensing review pending.
 
 ## Add portraits
@@ -48,3 +48,7 @@ Each moment in `src/data.js` has `fullQuote: null` until a verified, appropriate
 3. Populate permitted full-quote text.
 4. Improve real 3D stone geometry, material textures, and camera transitions.
 5. Test WebGL performance and mobile usability before deployment.
+
+## Portrait loading
+
+The current site attempts an article-thumbnail lookup for each unique speaker using `wikiTitle` in `src/data.js`; these images are fetched at runtime rather than committed to the repository. This is best-effort and does not guarantee every character gets an image. For reliable portraits, store appropriately licensed image assets under `public/portraits/` and change `portrait` in `src/data.js` from `null` to the local URL. Review third-party image licensing and attributions before public use.
