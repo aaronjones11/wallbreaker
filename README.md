@@ -25,7 +25,7 @@ Deploy the `dist` folder to Cloudflare Pages or Vercel. For Cloudflare Pages: fr
 ## Status
 
 - Interactive Three.js stone monument gallery; drag, zoom, category filtering, search, random selection and fly-to navigation.
-- 25 moments, covering 20 unique people or characters.
+- 25 moments, covering 21 unique people or characters.
 - Selected monument opens scrollable quote popup and links to YouTube **search results**, not verified original source videos.
 - Short titles/excerpts are explicitly identified. **Complete verified quotations have not been added.**
 - **Portraits have not been added**: visual initials remain until images are individually sourced.
