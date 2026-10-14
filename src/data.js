@@ -28,6 +28,6 @@ export const moments = [
   id,name,category,quote,description,search,wikiTitle,
   // Use only verified and cleared source content for full quote transcription.
   fullQuote: null,
-  sourceUrl: null,
+  sourceUrl: ({1:'https://www.youtube.com/watch?v=fY7l2pcxdHM',2:'https://www.youtube.com/watch?v=WrfbCMSwWzc',7:'https://www.youtube.com/watch?v=nmGFOCU9LYM',10:'https://www.youtube.com/watch?v=vyYDz_A6HO8'})[id] || null,
   portrait: null
 }));
