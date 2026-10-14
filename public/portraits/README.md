@@ -1,0 +1,1 @@
+Portraits for each unique speaker belong here as local assets, e.g. kobe-bryant.webp. Preserve source, attribution, and usage-rights information. Current prototype uses letter placeholders until files are added. Do not assume a photograph available online is licensed for public redistribution.
