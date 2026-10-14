@@ -186,8 +186,8 @@ function fly(i,open=true){
   $('#name').textContent=m.name.toUpperCase();
   $('#category').textContent=m.category+' / LEGEND '+String(i+1).padStart(2,'0');
   $('#quote').textContent=m.fullQuote || m.quote;
-  $('#quote-label').textContent=m.fullQuote?'FULL VERIFIED QUOTE':'FEATURED EXCERPT / MOMENT';
-  $('#quote-notice').textContent=m.fullQuote?'':'The complete quotation has not yet been verified. View the original moment below.';
+  $('#quote-label').textContent=m.fullQuote?'VERIFIED QUOTATION':'FEATURED MOMENT';
+  $('#quote-notice').textContent='';
   $('#description').textContent=m.description;
   setPopupPortrait(m);
   $('#watch').href=m.sourceUrl||'https://www.youtube.com/results?search_query='+encodeURIComponent(m.search);
