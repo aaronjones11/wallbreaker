@@ -52,3 +52,7 @@ Each moment in `src/data.js` has `fullQuote: null` until a verified, appropriate
 ## Portrait loading
 
 The current site attempts an article-thumbnail lookup for each unique speaker using `wikiTitle` in `src/data.js`; these images are fetched at runtime rather than committed to the repository. This is best-effort and does not guarantee every character gets an image. For reliable portraits, store appropriately licensed image assets under `public/portraits/` and change `portrait` in `src/data.js` from `null` to the local URL. Review third-party image licensing and attributions before public use.
+
+## Embedded speech videos
+
+Click **WATCH ORIGINAL MOMENT** inside a speaker popup to open an in-page YouTube player. Linked videos play within a cinematic overlay and stop when closed (Escape, X, or click outside). Four original/related direct YouTube clips have been associated with Kobe Bryant, Ray Lewis, Mike Tyson, and Rocky Balboa. Remaining monuments display an in-page notice and an optional YouTube search link until a specific video URL has been checked and added. Some videos may block embedding at their uploader's discretion. Add vetted `sourceUrl` values in `src/data.js` to expand video coverage.
