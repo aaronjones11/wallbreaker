@@ -71,25 +71,72 @@ moments.forEach((m,i)=>{
   const halo=new THREE.Mesh(new THREE.PlaneGeometry(247,304),new THREE.MeshBasicMaterial({color:0xff4719,transparent:true,opacity:.065,depthWrite:false}));
   halo.position.z=-15;group.add(halo);
   wall.add(group);cards.push({group,inset,halo,baseX:x,baseY:y});
-  // Set portrait in src/data.js as a URL beginning with /portraits/ to use a local image.
-  if(m.portrait){
-    loader.load(m.portrait,texture=>{
-      texture.colorSpace=THREE.SRGBColorSpace;
-      const c=document.createElement('canvas');c.width=512;c.height=640;
-      const g=c.getContext('2d');
-      const img=texture.image;
-      const scale=Math.max(512/img.width,640/img.height);
-      const w=img.width*scale,h=img.height*scale;
-      g.drawImage(img,(512-w)/2,(640-h)/2,w,h);
-      g.fillStyle='#050506c9';g.fillRect(0,420,512,220);
-      g.fillStyle='#fff1e7';g.font='bold 38px Arial';g.fillText(m.name.toUpperCase().slice(0,19),22,490);
-      g.font='italic 24px Georgia';g.fillText(m.quote.slice(0,29),22,544);
-      g.fillStyle='#ff955b';g.font='bold 19px Arial';g.fillText(m.category,22,605);
-      material.map.dispose();material.map=new THREE.CanvasTexture(c);
-      material.map.colorSpace=THREE.SRGBColorSpace;material.needsUpdate=true;
-    },undefined,()=>{});
-  }
+
 });
+
+const portraitUrls = new Map();
+function updateSpeakerPortrait(name,url,image){
+  portraitUrls.set(name,url);
+  cards.forEach((card,i)=>{
+    const m=moments[i];
+    if(m.name!==name)return;
+    const c=document.createElement('canvas');c.width=512;c.height=640;
+    const g=c.getContext('2d');
+    const scale=Math.max(512/image.width,418/image.height);
+    const w=image.width*scale,h=image.height*scale;
+    g.drawImage(image,(512-w)/2,(418-h)/2,w,h);
+    g.fillStyle='rgba(15,9,7,.17)';g.fillRect(0,0,512,418);
+    g.fillStyle='#050506de';g.fillRect(0,418,512,222);
+    g.fillStyle='#fff1e7';g.font='bold 38px Arial';g.fillText(m.name.toUpperCase().slice(0,19),23,482);
+    g.fillStyle='#ffd1b8';g.font='italic 24px Georgia';g.fillText(m.quote.slice(0,32),23,532);
+    g.fillStyle='#ff955b';g.font='bold 19px Arial';g.fillText(m.category,23,608);
+    const material=card.inset.material;
+    material.map?.dispose();
+    material.map=new THREE.CanvasTexture(c);
+    material.map.colorSpace=THREE.SRGBColorSpace;
+    material.needsUpdate=true;
+  });
+  if(selected>=0&&moments[selected]?.name===name){
+    setPopupPortrait(moments[selected]);
+  }
+}
+function setPopupPortrait(m){
+  const banner=$('#banner'),old=banner.querySelector('img');
+  if(old)old.remove();
+  $('#initials').textContent=m.name.split(' ').map(v=>v[0]).join('').slice(0,2);
+  const url=portraitUrls.get(m.name);
+  if(!url)return;
+  const img=document.createElement('img');
+  img.src=url;img.alt=m.name;img.referrerPolicy='no-referrer';
+  img.onerror=()=>img.remove();
+  banner.prepend(img);
+}
+function loadPortrait(url){
+  return new Promise((resolve,reject)=>loader.load(url,texture=>resolve(texture.image),undefined,reject));
+}
+async function articlePortrait(title){
+  const endpoint='https://en.wikipedia.org/w/api.php?action=query&prop=pageimages&format=json&pithumbsize=700&titles='+encodeURIComponent(title)+'&origin=*';
+  const response=await fetch(endpoint);
+  if(!response.ok)throw new Error('Article portrait request failed');
+  const json=await response.json();
+  const page=Object.values(json.query?.pages||{})[0];
+  return page?.thumbnail?.source||null;
+}
+async function hydratePortraits(){
+  const unique=new Map();
+  moments.forEach(m=>{if(!unique.has(m.name))unique.set(m.name,m);});
+  await Promise.allSettled([...unique].map(async ([name,m])=>{
+    let url=m.portrait;
+    if(!url&&m.wikiTitle)url=await articlePortrait(m.wikiTitle);
+    if(!url)return;
+    const image=await loadPortrait(url);
+    updateSpeakerPortrait(name,url,image);
+  }));
+}
+// Wikipedia article images are opportunistic and may be absent or blocked by CORS.
+// Curated /public/portraits files override this lookup through moment.portrait.
+hydratePortraits();
+
 for(let i=0;i<moments.length;i++)for(const j of [i+1,i+5]){
   if(j>=moments.length||(j===i+1&&i%5===4))continue;
   const a=cards[i].group.position,b=cards[j].group.position;
@@ -142,10 +189,7 @@ function fly(i,open=true){
   $('#quote-label').textContent=m.fullQuote?'FULL VERIFIED QUOTE':'FEATURED EXCERPT / MOMENT';
   $('#quote-notice').textContent=m.fullQuote?'':'The complete quotation has not yet been verified. View the original moment below.';
   $('#description').textContent=m.description;
-  const banner=$('#banner'),old=banner.querySelector('img');
-  if(old)old.remove();
-  $('#initials').textContent=m.name.split(' ').map(v=>v[0]).join('').slice(0,2);
-  if(m.portrait){const img=document.createElement('img');img.src=m.portrait;img.alt=m.name;img.onerror=()=>img.remove();banner.prepend(img);}
+  setPopupPortrait(m);
   $('#watch').href=m.sourceUrl||'https://www.youtube.com/results?search_query='+encodeURIComponent(m.search);
   $('#more').href='https://www.youtube.com/results?search_query='+encodeURIComponent(m.name+' motivational speeches');
 }
