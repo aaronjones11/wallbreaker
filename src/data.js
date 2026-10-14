@@ -23,7 +23,8 @@ export const moments = [
 ['Teddy Atlas','MENTAL TOUGHNESS','Strong for 15 Minutes','Finding strength when it matters.','Teddy Atlas strong for 15 minutes','Teddy Atlas'],
 ['Nick Saban','CONSISTENCY','Win the Next Play','A process-focused theme, not a verified verbatim quotation.','Nick Saban next play process','Nick Saban'],
 ['Naruto Uzumaki','COURAGE','Naruto vs. Neji','Defying expectations.','Naruto Neji speech','Naruto Uzumaki'],
-["Coach D’Amato",'EFFORT','The Inches Speech','Small choices determine the outcome.','Any Given Sunday inches speech','Tony D\'Amato']
+["Coach D’Amato",'EFFORT','The Inches Speech','Small choices determine the outcome.','Any Given Sunday inches speech','Tony D\'Amato'],
+['Bob Chesney','COURAGE','Burn the boats!','UCLA pregame tunnel speech before the October 10, 2026 victory at Oregon. No retreat. Total commitment. Contains strong language.','Bob Chesney UCLA burn the boats Oregon tunnel speech','Bob Chesney'],
 ].map(([name,category,quote,description,search,wikiTitle],id)=>({
   id,name,category,quote,description,search,wikiTitle,
   // Use only verified and cleared source content for full quote transcription.
