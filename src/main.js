@@ -190,9 +190,71 @@ function fly(i,open=true){
   $('#quote-notice').textContent='';
   $('#description').textContent=m.description;
   setPopupPortrait(m);
-  $('#watch').href=m.sourceUrl||'https://www.youtube.com/results?search_query='+encodeURIComponent(m.search);
+  $('#watch').textContent=m.sourceUrl?'▶ WATCH ORIGINAL MOMENT':'▶ VIEW VIDEO';
   $('#more').href='https://www.youtube.com/results?search_query='+encodeURIComponent(m.name+' motivational speeches');
 }
+
+const videoOverlay=document.createElement('div');
+videoOverlay.id='video-overlay';
+videoOverlay.className='video-overlay';
+videoOverlay.hidden=true;
+videoOverlay.innerHTML='<section class="video-modal" role="dialog" aria-modal="true" aria-label="Original speech video"><div class="video-top"><div><span class="video-eyebrow">THE ORIGINAL MOMENT</span><h2 id="video-title"></h2></div><button id="video-close" aria-label="Close video">✕</button></div><div class="video-stage" id="video-stage"></div><p id="video-note"></p><a id="video-external" target="_blank" rel="noopener noreferrer">OPEN ON YOUTUBE ↗</a></section>';
+app.append(videoOverlay);
+const videoStage=$('#video-stage');
+function getYouTubeId(url){
+  if(!url)return null;
+  try{
+    const u=new URL(url);
+    if(u.hostname==='youtu.be')return /^[A-Za-z0-9_-]{11}$/.test(u.pathname.slice(1))?u.pathname.slice(1):null;
+    if(['youtube.com','www.youtube.com','m.youtube.com'].includes(u.hostname)){
+      const id=u.pathname.startsWith('/shorts/')?u.pathname.split('/')[2]:u.searchParams.get('v');
+      return /^[A-Za-z0-9_-]{11}$/.test(id||'')?id:null;
+    }
+  }catch(e){}
+  return null;
+}
+function closeVideo(){
+  videoOverlay.hidden=true;
+  videoStage.replaceChildren(); // Removes iframe and stops video playback.
+  document.body.classList.remove('video-open');
+}
+function openVideo(m){
+  closeVideo();
+  videoOverlay.hidden=false;
+  document.body.classList.add('video-open');
+  $('#video-title').textContent=m.name+' — '+m.quote;
+  const id=getYouTubeId(m.sourceUrl);
+  const external=$('#video-external');
+  external.href=m.sourceUrl||'https://www.youtube.com/results?search_query='+encodeURIComponent(m.search);
+  external.textContent=id?'OPEN ON YOUTUBE ↗':'FIND ORIGINAL VIDEO ON YOUTUBE ↗';
+  if(id){
+    const iframe=document.createElement('iframe');
+    iframe.src='https://www.youtube-nocookie.com/embed/'+id+'?autoplay=1&rel=0';
+    iframe.title=m.name+' — '+m.quote;
+    iframe.allow='accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share';
+    iframe.referrerPolicy='strict-origin-when-cross-origin';
+    iframe.allowFullscreen=true;
+    videoStage.append(iframe);
+    $('#video-note').textContent='The video plays here when its uploader allows embedding. If playback is blocked, use the YouTube link below.';
+  }else{
+    const notice=document.createElement('div');
+    notice.className='video-unlinked';
+    notice.textContent='A direct video for this moment has not been linked yet.';
+    videoStage.append(notice);
+    $('#video-note').textContent='We’re still curating the original footage for this moment.';
+  }
+  $('#video-close').focus();
+}
+$('#watch').removeAttribute('target');
+$('#watch').removeAttribute('href');
+$('#watch').addEventListener('click',event=>{
+  event.preventDefault();
+  if(selected>=0)openVideo(moments[selected]);
+});
+$('#video-close').addEventListener('click',closeVideo);
+videoOverlay.addEventListener('click',event=>{if(event.target===videoOverlay)closeVideo();});
+document.addEventListener('keydown',event=>{if(event.key==='Escape'&&!videoOverlay.hidden)closeVideo();});
+
 showFilters();
 $('#reset').onclick=reset;
 $('#random').onclick=()=>fly(Math.floor(Math.random()*moments.length));
