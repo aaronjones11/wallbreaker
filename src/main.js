@@ -107,8 +107,6 @@ edGrid.addEventListener('click',event=>{
 });
 $('#ed-feature').addEventListener('click',()=>{const index=moments.findIndex(m=>m.quote.toLowerCase().includes('burn the boats'));if(index>=0){switchView('wall');fly(index);}});
 $('#ed-enter-wall').addEventListener('click',()=>switchView('wall'));
-renderEditorial();
-switchView('editorial');
 
 const scene = new THREE.Scene();
 scene.background = new THREE.Color('#090606');
@@ -180,6 +178,8 @@ moments.forEach((m,i)=>{
 });
 
 const portraitUrls = new Map();
+renderEditorial();
+switchView('editorial');
 function updateSpeakerPortrait(name,url,image){
   portraitUrls.set(name,url);
   refreshEditorialPortraits(name,url);
