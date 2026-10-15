@@ -56,3 +56,7 @@ The current site attempts an article-thumbnail lookup for each unique speaker us
 ## Embedded speech videos
 
 Click **WATCH ORIGINAL MOMENT** inside a speaker popup to open an in-page YouTube player. Linked videos play within a cinematic overlay and stop when closed (Escape, X, or click outside). Four original/related direct YouTube clips have been associated with Kobe Bryant, Ray Lewis, Mike Tyson, and Rocky Balboa. Remaining monuments display an in-page notice and an optional YouTube search link until a specific video URL has been checked and added. Some videos may block embedding at their uploader's discretion. Add vetted `sourceUrl` values in `src/data.js` to expand video coverage.
+
+## Editorial Explore mode
+
+WALLBREAKER now opens in an editorial Explore view: a featured story, browsable portrait cards, searchable archive, mentality filters, and direct video buttons. Use the **EXPLORE / THE WALL** switch in the header to enter the original interactive Three.js wall. Clicking **EXPLORE** on a moment flies to its monument and opens its speaker detail. **WATCH** opens the in-page video modal when a direct source is available, or explains that an original clip still needs curating. The editorial layout adapts to narrower/mobile displays.
