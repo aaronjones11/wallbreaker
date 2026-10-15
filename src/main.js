@@ -5,6 +5,111 @@ import './style.css';
 const app = document.querySelector('#app');
 app.innerHTML = '<div id="scene"></div><div class="shade"></div><header><div><div class="brand">WALL<b>BREAKER.</b></div><div class="kicker">THE MENTALITY COLLECTION</div></div><div class="search"><input id="search" aria-label="Search legends" placeholder="⌕ SEARCH LEGENDS & QUOTES..."><div class="results" id="results"></div></div></header><nav class="filters" id="filters"></nav><div class="instructions">DRAG TO EXPLORE<br>SCROLL TO ZOOM · CLICK A MONUMENT</div><div class="actions"><button id="random">IGNITE ↗</button><button id="reset">RESET ⌖</button></div><aside class="panel" id="panel"><div class="banner" id="banner"><span id="initials"></span><button class="close" id="close">✕</button></div><div class="content"><div class="category" id="category"></div><h2 id="name"></h2><div class="quote-label" id="quote-label"></div><blockquote id="quote"></blockquote><p class="quote-notice" id="quote-notice"></p><p id="description"></p><a id="watch" target="_blank" rel="noopener noreferrer">▶ FIND ORIGINAL MOMENT</a><a class="alt" id="more" target="_blank" rel="noopener noreferrer">MORE SPEECHES ↗</a></div></aside><footer><b>●</b> THE LIVING WALL · '+moments.length+' MOMENTS · THREE.JS</footer>';
 const $ = selector => app.querySelector(selector);
+
+/* Editorial / immersive hybrid navigation */
+const editorial=document.createElement('main');
+editorial.id='editorial';
+editorial.className='editorial';
+editorial.setAttribute('aria-label','Explore the mentality collection');
+editorial.innerHTML='<div class="ed-inner"><div class="ed-overline">THE MENTALITY COLLECTION <span> / VOL. 001</span></div><section class="ed-hero"><div class="ed-hero-copy"><div class="ed-label">FEATURED MOMENT <span>— THE COURAGE ISSUE</span></div><h1>WORDS THAT<br><em>BREAK WALLS.</em></h1><p>A living archive of the speeches, voices and moments that move us. Find your fire. Follow the story.</p><div class="ed-hero-actions"><button type="button" id="ed-feature">EXPLORE THE FEATURE ↗</button><button type="button" id="ed-enter-wall">ENTER THE 3D WALL →</button></div></div><div class="ed-hero-art" id="ed-hero-art"><div class="ed-art-glow"></div><div class="ed-art-word">BURN<br>THE<br>BOATS.</div><div class="ed-art-credit">BOB CHESNEY / COURAGE</div></div></section><section class="ed-library"><div class="ed-section-head"><div><div class="ed-overline">THE ARCHIVE / 001—026</div><h2>Explore the moments<span>.</span></h2></div><p>Browse by mentality, discover a legend, or go deeper into a speech.</p></div><div class="ed-toolbar"><label class="ed-search-label"><span>⌕</span><input id="ed-search" type="search" placeholder="Search people, quotes, themes…" aria-label="Search the archive"></label><div id="ed-chips" class="ed-chips" aria-label="Filter archive by category"></div></div><div class="ed-results"><span id="ed-count"></span><span>SELECT A MOMENT TO EXPLORE</span></div><div class="ed-grid" id="ed-grid"></div></section><div class="ed-bottom">WALLBREAKER <span>BUILT ON EFFORT. CONSISTENCY. DISCOMFORT.</span></div></div>';
+app.append(editorial);
+const viewSwitch=document.createElement('div');
+viewSwitch.className='view-switch';
+viewSwitch.setAttribute('role','group');
+viewSwitch.setAttribute('aria-label','Choose a browsing view');
+viewSwitch.innerHTML='<button type="button" data-view="editorial" class="active">EXPLORE</button><button type="button" data-view="wall">THE WALL ↗</button>';
+app.querySelector('header').append(viewSwitch);
+let activeView='editorial',edCategory='ALL',edQuery='';
+function switchView(view){
+  activeView=view;
+  app.classList.toggle('is-editorial',view==='editorial');
+  viewSwitch.querySelectorAll('button').forEach(button=>{
+    const active=button.dataset.view===view;
+    button.classList.toggle('active',active);
+    button.setAttribute('aria-pressed',String(active));
+  });
+  if(view==='editorial')$('#panel').classList.remove('open');
+  else resize();
+}
+viewSwitch.addEventListener('click',event=>{
+  const target=event.target.closest('button[data-view]');
+  if(target)switchView(target.dataset.view);
+});
+const edSearch=$('#ed-search'),edGrid=$('#ed-grid'),edChips=$('#ed-chips');
+const archiveCategories=['ALL',...new Set(moments.map(m=>m.category))];
+edChips.replaceChildren(...archiveCategories.map(cat=>{
+  const b=document.createElement('button');b.type='button';b.dataset.category=cat;b.textContent=cat;
+  b.setAttribute('aria-pressed',String(cat===edCategory));
+  b.classList.toggle('active',cat===edCategory);
+  return b;
+}));
+function renderEditorial(){
+  const matched=moments.filter(m=>(edCategory==='ALL'||m.category===edCategory)&&
+    (m.name+' '+m.quote+' '+m.category+' '+m.description).toLowerCase().includes(edQuery));
+  $('#ed-count').textContent=String(matched.length).padStart(2,'0')+' / '+moments.length+' MOMENTS';
+  const frag=document.createDocumentFragment();
+  matched.forEach(m=>{
+    const tile=document.createElement('article');
+    tile.className='ed-card';
+    const visual=document.createElement('button');
+    visual.type='button';visual.className='ed-card-art';visual.dataset.action='read';visual.dataset.index=m.id;
+    visual.setAttribute('aria-label','Explore '+m.name+' — '+m.quote);
+    const image=portraitUrls.get(m.name);
+    if(image){
+      const img=document.createElement('img');img.src=image;img.alt='';
+      img.loading='lazy';img.onerror=()=>img.remove();visual.append(img);
+    }
+    const stamp=document.createElement('span');stamp.className='ed-card-stamp';stamp.textContent=String(m.id+1).padStart(2,'0');
+    const silhouette=document.createElement('span');silhouette.className='ed-card-silhouette';silhouette.textContent=m.name.split(' ').map(w=>w[0]).join('').slice(0,2);
+    visual.append(silhouette,stamp);
+    const info=document.createElement('div');info.className='ed-card-info';
+    const tag=document.createElement('div');tag.className='ed-card-tag';tag.textContent=m.category;
+    const name=document.createElement('h3');name.textContent=m.name;
+    const quote=document.createElement('p');quote.textContent=m.quote;
+    const actions=document.createElement('div');actions.className='ed-card-actions';
+    const read=document.createElement('button');read.type='button';read.dataset.action='read';read.dataset.index=m.id;read.textContent='EXPLORE ↗';
+    const watch=document.createElement('button');watch.type='button';watch.dataset.action='watch';watch.dataset.index=m.id;watch.textContent=m.sourceUrl?'▶ WATCH':'▶ VIDEO';
+    actions.append(read,watch);info.append(tag,name,quote,actions);tile.append(visual,info);frag.append(tile);
+  });
+  edGrid.replaceChildren(frag);
+  if(!matched.length){const empty=document.createElement('p');empty.className='ed-empty';empty.textContent='No moments found. Try a different search or category.';edGrid.append(empty);}
+}
+function refreshEditorialPortraits(name,url){
+  // Update visible cards without clearing search results or resetting scroll.
+  editorial.querySelectorAll('.ed-card').forEach(tile=>{
+    const btn=tile.querySelector('[data-action="read"]');
+    if(!btn||moments[Number(btn.dataset.index)].name!==name)return;
+    const visual=tile.querySelector('.ed-card-art');
+    const existing=visual.querySelector('img');
+    if(existing)existing.remove();
+    const img=document.createElement('img');img.alt='';img.loading='lazy';img.src=url;img.onerror=()=>img.remove();
+    visual.prepend(img);
+  });
+  if(name==='Bob Chesney'){
+    const art=$('#ed-hero-art');
+    art.style.setProperty('--hero-portrait','url("'+url.replace(/"/g,'%22')+'")');
+  }
+}
+edChips.addEventListener('click',event=>{
+  const b=event.target.closest('button[data-category]');if(!b)return;
+  edCategory=b.dataset.category;
+  edChips.querySelectorAll('button').forEach(node=>{
+    const active=node===b;node.classList.toggle('active',active);node.setAttribute('aria-pressed',String(active));
+  });
+  renderEditorial();
+});
+edSearch.addEventListener('input',()=>{edQuery=edSearch.value.trim().toLowerCase();renderEditorial();});
+edGrid.addEventListener('click',event=>{
+  const b=event.target.closest('button[data-action]');if(!b)return;
+  const i=Number(b.dataset.index);if(!moments[i])return;
+  if(b.dataset.action==='watch')openVideo(moments[i]);
+  else{switchView('wall');fly(i);}
+});
+$('#ed-feature').addEventListener('click',()=>{const index=moments.findIndex(m=>m.quote.toLowerCase().includes('burn the boats'));if(index>=0){switchView('wall');fly(index);}});
+$('#ed-enter-wall').addEventListener('click',()=>switchView('wall'));
+renderEditorial();
+switchView('editorial');
+
 const scene = new THREE.Scene();
 scene.background = new THREE.Color('#090606');
 scene.fog = new THREE.FogExp2(0x090606,.00042);
@@ -77,6 +182,7 @@ moments.forEach((m,i)=>{
 const portraitUrls = new Map();
 function updateSpeakerPortrait(name,url,image){
   portraitUrls.set(name,url);
+  refreshEditorialPortraits(name,url);
   cards.forEach((card,i)=>{
     const m=moments[i];
     if(m.name!==name)return;
