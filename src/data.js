@@ -25,10 +25,11 @@ export const moments = [
 ['Naruto Uzumaki','COURAGE','Naruto vs. Neji','Defying expectations.','Naruto Neji speech','Naruto Uzumaki'],
 ["Coach D’Amato",'EFFORT','The Inches Speech','Small choices determine the outcome.','Any Given Sunday inches speech','Tony D\'Amato'],
 ['Bob Chesney','COURAGE','Burn the boats!','UCLA pregame tunnel speech before the October 10, 2026 victory at Oregon. No retreat. Total commitment. Contains strong language.','Bob Chesney UCLA burn the boats Oregon tunnel speech','Bob Chesney'],
+['Denzel Washington','ACCOUNTABILITY','Those who can, do. Those who can’t, talk about those who can.','Denzel responds to criticism surrounding the “Uncle Denzel” meme in a September 2016 Global Grind interview while promoting The Magnificent Seven. His challenge: act instead of criticizing from the sidelines.','Denzel Washington those who can do BlogXilla Uncle Denzel 2016','Denzel Washington'],
 ].map(([name,category,quote,description,search,wikiTitle],id)=>({
   id,name,category,quote,description,search,wikiTitle,
   // Use only verified and cleared source content for full quote transcription.
   fullQuote: null,
-  sourceUrl: ({1:'https://www.youtube.com/watch?v=fY7l2pcxdHM',2:'https://www.youtube.com/watch?v=WrfbCMSwWzc',7:'https://www.youtube.com/watch?v=nmGFOCU9LYM',10:'https://www.youtube.com/watch?v=vyYDz_A6HO8'})[id] || null,
+  sourceUrl: ({1:'https://www.youtube.com/watch?v=fY7l2pcxdHM',2:'https://www.youtube.com/watch?v=WrfbCMSwWzc',7:'https://www.youtube.com/watch?v=nmGFOCU9LYM',10:'https://www.youtube.com/watch?v=vyYDz_A6HO8',26:'https://twitter.com/BlogXilla/status/776035348304400386'})[id] || null,
   portrait: null
 }));
