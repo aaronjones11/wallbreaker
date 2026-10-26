@@ -25,7 +25,7 @@ Deploy the `dist` folder to Cloudflare Pages or Vercel. For Cloudflare Pages: fr
 ## Status
 
 - Interactive Three.js stone monument gallery; drag, zoom, category filtering, search, random selection and fly-to navigation.
-- 25 moments, covering 21 unique people or characters.
+- 44 curated moments spanning sports, commencement speeches, history, film, animation, and real-life interviews.
 - Selected monument opens scrollable quote popup and links to YouTube **search results**, not verified original source videos.
 - Short titles/excerpts are explicitly identified. **Complete verified quotations have not been added.**
 - **Auto portraits:** Wikimedia/Wikipedia article thumbnails are fetched in the browser where available, displayed on monuments and in popups. This depends on image availability and browser CORS. Other entries retain initials placeholders. No curated portrait files have been uploaded.
@@ -60,3 +60,13 @@ Click **WATCH ORIGINAL MOMENT** inside a speaker popup to open an in-page YouTub
 ## Editorial Explore mode
 
 WALLBREAKER now opens in an editorial Explore view: a featured story, browsable portrait cards, searchable archive, mentality filters, and direct video buttons. Use the **EXPLORE / THE WALL** switch in the header to enter the original interactive Three.js wall. Clicking **EXPLORE** on a moment flies to its monument and opens its speaker detail. **WATCH** opens the in-page video modal when a direct source is available, or explains that an original clip still needs curating. The editorial layout adapts to narrower/mobile displays.
+
+## October 2026 archive expansion
+
+17 new sourced moments were added, bringing the archive to **44 moments**. Each new entry has a contextual summary and a source/reference URL under the popup's **READ ORIGINAL QUOTE SOURCE** link. New additions include Goggins, Jocko Willink, Jim Valvano, McRaven, Steve Jobs, Jordan, Denzel Washington, Inky Johnson, Serena Williams, Brené Brown, Roosevelt, Kennedy, Yoda, Mufasa, Rengoku, All Might and Maya Angelou. Verified original/related YouTube clips were linked where a concrete ID was available; the remaining moments use video-search fallback.
+
+The original 3D wall dynamically adapts to the 7-column gallery. Selected public-domain historical speech excerpts for Roosevelt and Kennedy are displayed in expanded form. Other quotations remain short sourced excerpts and themes rather than unauthorized speech transcripts.
+
+### Editorial/source review
+
+Some source references are event transcripts or credible coverage rather than a video hosted by the original speaker. Auto-loaded photographs are still provisional and should be reviewed for attribution and redistribution rights before broad publication.
