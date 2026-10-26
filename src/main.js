@@ -3,7 +3,7 @@ import { moments } from './data.js';
 import './style.css';
 
 const app = document.querySelector('#app');
-app.innerHTML = '<div id="scene"></div><div class="shade"></div><header><div><div class="brand">WALL<b>BREAKER.</b></div><div class="kicker">THE MENTALITY COLLECTION</div></div><div class="search"><input id="search" aria-label="Search legends" placeholder="⌕ SEARCH LEGENDS & QUOTES..."><div class="results" id="results"></div></div></header><nav class="filters" id="filters"></nav><div class="instructions">DRAG TO EXPLORE<br>SCROLL TO ZOOM · CLICK A MONUMENT</div><div class="actions"><button id="random">IGNITE ↗</button><button id="reset">RESET ⌖</button></div><aside class="panel" id="panel"><div class="banner" id="banner"><span id="initials"></span><button class="close" id="close">✕</button></div><div class="content"><div class="category" id="category"></div><h2 id="name"></h2><div class="quote-label" id="quote-label"></div><blockquote id="quote"></blockquote><p class="quote-notice" id="quote-notice"></p><p id="description"></p><a id="watch" target="_blank" rel="noopener noreferrer">▶ FIND ORIGINAL MOMENT</a><a class="alt" id="more" target="_blank" rel="noopener noreferrer">MORE SPEECHES ↗</a></div></aside><footer><b>●</b> THE LIVING WALL · '+moments.length+' MOMENTS · THREE.JS</footer>';
+app.innerHTML = '<div id="scene"></div><div class="shade"></div><header><div><div class="brand">WALL<b>BREAKER.</b></div><div class="kicker">THE MENTALITY COLLECTION</div></div><div class="search"><input id="search" aria-label="Search legends" placeholder="⌕ SEARCH LEGENDS & QUOTES..."><div class="results" id="results"></div></div></header><nav class="filters" id="filters"></nav><div class="instructions">DRAG TO EXPLORE<br>SCROLL TO ZOOM · CLICK A MONUMENT</div><div class="actions"><button id="random">IGNITE ↗</button><button id="reset">RESET ⌖</button></div><aside class="panel" id="panel"><div class="banner" id="banner"><span id="initials"></span><button class="close" id="close">✕</button></div><div class="content"><div class="category" id="category"></div><h2 id="name"></h2><div class="quote-label" id="quote-label"></div><blockquote id="quote"></blockquote><p class="quote-notice" id="quote-notice"></p><p id="description"></p><a id="watch" target="_blank" rel="noopener noreferrer">▶ FIND ORIGINAL MOMENT</a><a class="alt" id="more" target="_blank" rel="noopener noreferrer">MORE SPEECHES ↗</a><a class="source-link" id="reference" target="_blank" rel="noopener noreferrer" hidden>READ ORIGINAL QUOTE SOURCE ↗</a></div></aside><footer><b>●</b> THE LIVING WALL · '+moments.length+' MOMENTS · THREE.JS</footer>';
 const $ = selector => app.querySelector(selector);
 
 /* Editorial / immersive hybrid navigation */
@@ -112,7 +112,7 @@ const scene = new THREE.Scene();
 scene.background = new THREE.Color('#090606');
 scene.fog = new THREE.FogExp2(0x090606,.00042);
 const camera = new THREE.PerspectiveCamera(52,1,1,9000);
-camera.position.set(0,0,1150);
+camera.position.set(0,0,2400);
 const renderer = new THREE.WebGLRenderer({antialias:true,powerPreference:'high-performance'});
 renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1,1.8));
 renderer.outputColorSpace = THREE.SRGBColorSpace;
@@ -129,7 +129,7 @@ scene.add(wall);
 const stone = new THREE.MeshStandardMaterial({color:0x1d1817,roughness:.9,metalness:.12});
 const rim = new THREE.MeshStandardMaterial({color:0x5d2415,roughness:.48,metalness:.4});
 const hot = new THREE.MeshBasicMaterial({color:0xff622b});
-const back = new THREE.Mesh(new THREE.BoxGeometry(3000,2300,60),stone);
+const back = new THREE.Mesh(new THREE.BoxGeometry(3400,2700,60),stone);
 back.position.z = -75;
 wall.add(back);
 const portraitCache = new Map();
@@ -157,11 +157,13 @@ function tileTexture(m){
   texture.colorSpace=THREE.SRGBColorSpace;
   return texture;
 }
+const wallColumns=7;
+const wallRows=Math.ceil(moments.length/wallColumns);
 const cards=[];
 const loader=new THREE.TextureLoader();
 moments.forEach((m,i)=>{
-  const col=i%5,row=Math.floor(i/5);
-  const x=(col-2)*260+(row%2)*25,y=(2-row)*330,z=18+Math.sin(i*2.13)*22;
+  const col=i%wallColumns,row=Math.floor(i/wallColumns);
+  const x=(col-(wallColumns-1)/2)*260+(row%2)*25,y=((wallRows-1)/2-row)*330,z=18+Math.sin(i*2.13)*22;
   const group=new THREE.Group();
   group.position.set(x,y,z);group.rotation.y=Math.sin(i*1.7)*.055;
   const slab=new THREE.Mesh(new THREE.BoxGeometry(228,286,25),rim);
@@ -243,8 +245,8 @@ async function hydratePortraits(){
 // Curated /public/portraits files override this lookup through moment.portrait.
 hydratePortraits();
 
-for(let i=0;i<moments.length;i++)for(const j of [i+1,i+5]){
-  if(j>=moments.length||(j===i+1&&i%5===4))continue;
+for(let i=0;i<moments.length;i++)for(const j of [i+1,i+wallColumns]){
+  if(j>=moments.length||(j===i+1&&i%wallColumns===wallColumns-1))continue;
   const a=cards[i].group.position,b=cards[j].group.position;
   const curve=new THREE.CatmullRomCurve3([
     new THREE.Vector3(a.x,a.y,-27),
@@ -263,10 +265,10 @@ for(let i=0;i<count;i++){
 const particleGeometry=new THREE.BufferGeometry();
 particleGeometry.setAttribute('position',new THREE.BufferAttribute(particlePos,3));
 scene.add(new THREE.Points(particleGeometry,new THREE.PointsMaterial({color:0xff8c3d,size:3.5,transparent:true,opacity:.8,depthWrite:false})));
-let targetX=0,targetY=0,targetZ=1150,selected=-1,filter='ALL';
+let targetX=0,targetY=0,targetZ=2400,selected=-1,filter='ALL';
 const categories=['ALL',...new Set(moments.map(m=>m.category))];
 function reset(){
-  targetX=0;targetY=0;targetZ=1150;selected=-1;
+  targetX=0;targetY=0;targetZ=2400;selected=-1;
   $('#panel').classList.remove('open');
   cards.forEach(c=>c.halo.material.opacity=.065);
 }
@@ -298,6 +300,8 @@ function fly(i,open=true){
   setPopupPortrait(m);
   $('#watch').textContent=m.sourceUrl?'▶ WATCH ORIGINAL MOMENT':'▶ VIEW VIDEO';
   $('#more').href='https://www.youtube.com/results?search_query='+encodeURIComponent(m.name+' motivational speeches');
+  $('#reference').hidden=!m.referenceUrl;
+  if(m.referenceUrl)$('#reference').href=m.referenceUrl;
 }
 
 const videoOverlay=document.createElement('div');
@@ -403,7 +407,7 @@ canvas.addEventListener('pointerup',e=>{
 });
 canvas.addEventListener('wheel',e=>{
   e.preventDefault();
-  targetZ=Math.max(360,Math.min(2350,targetZ*(e.deltaY>0?1.095:.91)));
+  targetZ=Math.max(360,Math.min(3900,targetZ*(e.deltaY>0?1.095:.91)));
 },{passive:false});
 let last=performance.now();
 function animate(t){
